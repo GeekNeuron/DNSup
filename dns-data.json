@@ -1,0 +1,32 @@
+[
+    {
+        "name": "Google",
+        "primary_ip": "8.8.8.8",
+        "secondary_ip": "8.8.4.4",
+        "ipv6": "2001:4860:4860::8888"
+    },
+    {
+        "name": "Cloudflare",
+        "primary_ip": "1.1.1.1",
+        "secondary_ip": "1.0.0.1",
+        "ipv6": "2606:4700:4700::1111"
+    },
+    {
+        "name": "OpenDNS",
+        "primary_ip": "208.67.222.222",
+        "secondary_ip": "208.67.220.220",
+        "ipv6": "2620:119:35::35"
+    },
+    {
+        "name": "Quad9",
+        "primary_ip": "9.9.9.9",
+        "secondary_ip": "149.112.112.112",
+        "ipv6": "2620:fe::fe"
+    },
+    {
+        "name": "Shecan",
+        "primary_ip": "178.22.122.100",
+        "secondary_ip": "185.51.200.2",
+        "ipv6": ""
+    }
+]
