@@ -1,0 +1,427 @@
+:root {
+    --primary-bg-light: #f4f7f9;
+    --secondary-bg-light: #ffffff;
+    --primary-text-light: #1a1a1a;
+    --secondary-text-light: #555;
+    --accent-color-light: #007bff;
+    --border-color-light: #e0e0e0;
+
+    --primary-bg-dark: #121212;
+    --secondary-bg-dark: #1e1e1e;
+    --primary-text-dark: #e0e0e0;
+    --secondary-text-dark: #a0a0a0;
+    --accent-color-dark: #00aaff;
+    --border-color-dark: #333;
+
+    --ping-green: #28a745;
+    --ping-yellow: #ffc107;
+    --ping-red: #dc3545;
+
+    --border-radius: 16px;
+    --transition-speed: 0.3s;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+body.light-theme {
+    background-color: var(--primary-bg-light);
+    color: var(--primary-text-light);
+}
+
+body.dark-theme {
+    background-color: var(--primary-bg-dark);
+    color: var(--primary-text-dark);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Header */
+header {
+    background-color: var(--secondary-bg-light);
+    text-align: center;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    transition: background-color var(--transition-speed);
+}
+
+body.dark-theme header {
+    background-color: var(--secondary-bg-dark);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+/* Main Content */
+main {
+    padding: 20px 15px 100px 15px;
+}
+
+/* Toolbar */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.toolbar button {
+    background-color: var(--accent-color-light);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color var(--transition-speed);
+}
+
+body.dark-theme .toolbar button {
+    background-color: var(--accent-color-dark);
+}
+
+#add-dns-btn {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 5px 15px;
+}
+
+/* DNS List */
+#favorites-list {
+    margin-bottom: 20px;
+}
+
+#favorites-list .dns-tile {
+    border-left: 4px solid var(--accent-color-light);
+}
+
+body.dark-theme #favorites-list .dns-tile {
+    border-left-color: var(--accent-color-dark);
+}
+
+.favorite-separator {
+    border-bottom: 2px dashed var(--border-color-light);
+    margin: 20px 0;
+}
+
+body.dark-theme .favorite-separator {
+    border-bottom-color: var(--border-color-dark);
+}
+
+.dns-tile {
+    background-color: var(--secondary-bg-light);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 10px;
+    align-items: center;
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+body.dark-theme .dns-tile {
+    background-color: var(--secondary-bg-dark);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.dns-info {
+    grid-column: 1 / 2;
+}
+
+.dns-name {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.dns-ips {
+    font-size: 14px;
+    color: var(--secondary-text-light);
+}
+
+body.dark-theme .dns-ips {
+    color: var(--secondary-text-dark);
+}
+
+.dns-protocol {
+    font-size: 12px;
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
+body.dark-theme .dns-protocol {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+.dns-actions {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.ping-display {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.favorite-btn {
+    cursor: pointer;
+    color: var(--secondary-text-light);
+    transition: color var(--transition-speed);
+}
+
+body.dark-theme .favorite-btn {
+    color: var(--secondary-text-dark);
+}
+
+.favorite-btn.favorited {
+    color: var(--ping-yellow);
+}
+
+.live-chart-container {
+    grid-column: 1 / 3;
+    grid-row: 2 / 3;
+    height: 50px;
+}
+
+/* Speed Test View */
+.speed-test-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding-top: 40px;
+}
+
+.gauge {
+    width: 200px;
+    height: 200px;
+    position: relative;
+}
+
+.gauge-body {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #e0e0e0;
+    position: relative;
+    overflow: hidden;
+}
+
+body.dark-theme .gauge-body {
+    background: #333;
+}
+
+.gauge-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--accent-color-light);
+    transform: rotate(0deg);
+    transform-origin: center center;
+    transition: transform 0.5s;
+}
+
+body.dark-theme .gauge-fill {
+    background: var(--accent-color-dark);
+}
+
+.gauge-cover {
+    width: 160px;
+    height: 160px;
+    background: var(--secondary-bg-light);
+    border-radius: 50%;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--secondary-text-light);
+}
+
+body.dark-theme .gauge-cover {
+    background: var(--secondary-bg-dark);
+    color: var(--secondary-text-dark);
+}
+
+#speed-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--primary-text-light);
+}
+
+body.dark-theme #speed-value {
+    color: var(--primary-text-dark);
+}
+
+.speed-info {
+    display: flex;
+    gap: 30px;
+}
+
+.info-item {
+    text-align: center;
+}
+
+.info-item .material-icons {
+    font-size: 30px;
+}
+
+#start-speed-test-btn {
+    background-color: var(--accent-color-light);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 40px;
+    font-size: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+body.dark-theme #start-speed-test-btn {
+    background-color: var(--accent-color-dark);
+}
+
+
+/* Footer */
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--secondary-bg-light);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    transition: background-color var(--transition-speed);
+}
+
+body.dark-theme footer {
+    background-color: var(--secondary-bg-dark);
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.4);
+}
+
+.footer-item {
+    cursor: pointer;
+    text-align: center;
+    color: var(--secondary-text-light);
+    transition: color var(--transition-speed);
+}
+
+body.dark-theme .footer-item {
+    color: var(--secondary-text-dark);
+}
+
+.footer-item.active {
+    color: var(--accent-color-light);
+}
+
+body.dark-theme .footer-item.active {
+    color: var(--accent-color-dark);
+}
+
+.footer-item p {
+    margin: 2px 0 0 0;
+    font-size: 12px;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--secondary-bg-light);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    width: 85%;
+    max-width: 400px;
+    position: relative;
+}
+
+body.dark-theme .modal-content {
+    background-color: var(--secondary-bg-dark);
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+#add-dns-form input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color-light);
+    background-color: var(--primary-bg-light);
+    color: var(--primary-text-light);
+}
+
+body.dark-theme #add-dns-form input {
+    border-color: var(--border-color-dark);
+    background-color: var(--primary-bg-dark);
+    color: var(--primary-text-dark);
+}
+
+#add-dns-form button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--accent-color-light);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+body.dark-theme #add-dns-form button {
+    background-color: var(--accent-color-dark);
+}
