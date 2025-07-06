@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNSup</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="light-theme">
+
+    <header id="header">
+        <h1>DNSup</h1>
+    </header>
+
+    <main id="main-content">
+        <div id="dns-check-view">
+            <div class="toolbar">
+                <button id="sort-by-ping">Sort by Ping <span class="material-icons">sort</span></button>
+                <button id="add-dns-btn">+</button>
+            </div>
+            <div id="favorites-list"></div>
+            <div id="dns-list"></div>
+        </div>
+
+        <div id="speed-test-view" class="hidden">
+            <div class="speed-test-container">
+                <div class="gauge">
+                    <div class="gauge-body">
+                        <div class="gauge-fill"></div>
+                        <div class="gauge-cover">
+                            <div id="speed-value">0.00</div>
+                            <div>Mbps</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="speed-info">
+                    <div class="info-item">
+                        <span class="material-icons">network_ping</span>
+                        <p>Ping: <span id="ping-value">-</span> ms</p>
+                    </div>
+                    <div class="info-item">
+                        <span class="material-icons">download</span>
+                        <p>Download: <span id="download-value">-</span> Mbps</p>
+                    </div>
+                    <div class="info-item">
+                        <span class="material-icons">upload</span>
+                        <p>Upload: <span id="upload-value">-</span> Mbps</p>
+                    </div>
+                </div>
+                <button id="start-speed-test-btn">GO</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-item active" data-view="dns-check-view">
+            <span class="material-icons">dns</span>
+            <p>DNS Check</p>
+        </div>
+        <div class="footer-item" data-view="speed-test-view">
+            <span class="material-icons">speed</span>
+            <p>Speed Test</p>
+        </div>
+    </footer>
+
+    <div id="add-dns-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Add New DNS</h2>
+            <form id="add-dns-form">
+                <input type="text" id="dns-name-input" placeholder="DNS Name (e.g., Google)" required>
+                <input type="text" id="dns-primary-ip-input" placeholder="Primary IPv4" required>
+                <input type="text" id="dns-secondary-ip-input" placeholder="Secondary IPv4">
+                <input type="text" id="dns-ipv6-input" placeholder="Optional IPv6">
+                <button type="submit">Add DNS</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
