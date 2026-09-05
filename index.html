@@ -1,30 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#007bff">
     <title>DNSup</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body class="light-theme">
 
-    <header id="header">
+    <header id="header" role="button" tabindex="0" aria-label="toggle dark mode">
+        <button id="lang-toggle-btn" class="lang-toggle" type="button" aria-label="toggle language">EN</button>
         <h1>DNSup</h1>
     </header>
 
     <main id="main-content">
         <div id="dns-check-view">
+            <div id="data-load-error" class="banner-error hidden" role="alert"></div>
+            <div class="banner-info" data-i18n="pingDisclaimer">Ping methodology note</div>
+            <div class="banner-info" data-i18n="tagsAreInformational">Tags note</div>
             <div class="toolbar">
-                <button id="sort-by-ping">Sort by Ping <span class="material-icons">sort</span></button>
-                <button id="add-dns-btn">+</button>
+                <button id="sort-by-ping"><span data-i18n="sortByPing">Sort by Ping</span> <span class="material-icons" aria-hidden="true">sort</span></button>
+                <label for="country-filter" class="visually-hidden" data-i18n="countryLabel">Country:</label>
+                <select id="country-filter">
+                    <option value="ALL" data-i18n="countryAll">All</option>
+                    <option value="GLOBAL" data-i18n="countryGlobal">Global</option>
+                    <option value="IR" data-i18n="countryIR">Iran</option>
+                    <option value="RU" data-i18n="countryRU">Russia</option>
+                    <option value="CUSTOM" data-i18n="countryCustom">My custom</option>
+                </select>
+                <button id="add-dns-btn" aria-label="Add DNS">+</button>
             </div>
+            <div id="no-country-results" class="banner-info hidden" data-i18n="noResultsForCountry">No entries for this country yet.</div>
             <div id="favorites-list"></div>
             <div id="dns-list"></div>
         </div>
 
         <div id="speed-test-view" class="hidden">
             <div class="speed-test-container">
+                <div id="speed-test-error" class="banner-error hidden" role="alert"></div>
+                <div class="banner-info" data-i18n="speedDisclaimer">Speed test methodology note</div>
+                <div id="speed-method-note" class="banner-info hidden"></div>
                 <div class="gauge">
                     <div class="gauge-body">
                         <div class="gauge-fill"></div>
@@ -36,44 +56,68 @@
                 </div>
                 <div class="speed-info">
                     <div class="info-item">
-                        <span class="material-icons">network_ping</span>
-                        <p>Ping: <span id="ping-value">-</span> ms</p>
+                        <span class="material-icons" aria-hidden="true">network_ping</span>
+                        <p><span data-i18n="pingLabel">Ping</span>: <span id="ping-value">-</span> ms</p>
                     </div>
                     <div class="info-item">
-                        <span class="material-icons">download</span>
-                        <p>Download: <span id="download-value">-</span> Mbps</p>
+                        <span class="material-icons" aria-hidden="true">download</span>
+                        <p><span data-i18n="downloadLabel">Download</span>: <span id="download-value">-</span> Mbps</p>
                     </div>
                     <div class="info-item">
-                        <span class="material-icons">upload</span>
-                        <p>Upload: <span id="upload-value">-</span> Mbps</p>
+                        <span class="material-icons" aria-hidden="true">upload</span>
+                        <p><span data-i18n="uploadLabel">Upload</span>: <span id="upload-value">-</span> Mbps</p>
                     </div>
                 </div>
-                <button id="start-speed-test-btn">GO</button>
+                <button id="start-speed-test-btn" data-i18n="go">GO</button>
             </div>
         </div>
     </main>
 
     <footer>
         <div class="footer-item active" data-view="dns-check-view">
-            <span class="material-icons">dns</span>
-            <p>DNS Check</p>
+            <span class="material-icons" aria-hidden="true">dns</span>
+            <p data-i18n="dnsCheckTab">DNS Check</p>
         </div>
         <div class="footer-item" data-view="speed-test-view">
-            <span class="material-icons">speed</span>
-            <p>Speed Test</p>
+            <span class="material-icons" aria-hidden="true">speed</span>
+            <p data-i18n="speedTestTab">Speed Test</p>
         </div>
     </footer>
 
     <div id="add-dns-modal" class="modal hidden">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2>Add New DNS</h2>
-            <form id="add-dns-form">
-                <input type="text" id="dns-name-input" placeholder="DNS Name (e.g., Google)" required>
-                <input type="text" id="dns-primary-ip-input" placeholder="Primary IPv4" required>
-                <input type="text" id="dns-secondary-ip-input" placeholder="Secondary IPv4">
-                <input type="text" id="dns-ipv6-input" placeholder="Optional IPv6">
-                <button type="submit">Add DNS</button>
+            <span class="close-btn" role="button" tabindex="0" aria-label="close">&times;</span>
+            <h2 id="dns-modal-title" data-i18n="addNewDns">Add New DNS</h2>
+            <form id="add-dns-form" novalidate>
+                <input type="text" id="dns-name-input" data-i18n-placeholder="dnsNamePh" placeholder="DNS Name (e.g., Google)" required maxlength="40" aria-label="DNS name">
+                <input type="text" id="dns-primary-ip-input" data-i18n-placeholder="primaryIpPh" placeholder="Primary IPv4" required inputmode="decimal" aria-label="Primary IPv4">
+                <input type="text" id="dns-secondary-ip-input" data-i18n-placeholder="secondaryIpPh" placeholder="Secondary IPv4" inputmode="decimal" aria-label="Secondary IPv4">
+                <input type="text" id="dns-ipv6-input" data-i18n-placeholder="ipv6Ph" placeholder="Optional IPv6" aria-label="Optional IPv6">
+
+                <label class="form-label" for="dns-country-input" data-i18n="countryFieldLabel">Country (optional)</label>
+                <select id="dns-country-input" aria-label="Country">
+                    <option value="" data-i18n="countryNone">None (custom only)</option>
+                    <option value="GLOBAL" data-i18n="countryGlobal">Global</option>
+                    <option value="IR" data-i18n="countryIR">Iran</option>
+                    <option value="RU" data-i18n="countryRU">Russia</option>
+                    <option value="__new__" data-i18n="countryAddNew">+ Add new country…</option>
+                </select>
+                <div id="new-country-fields" class="hidden">
+                    <input type="text" id="new-country-code-input" data-i18n-placeholder="newCountryCodePh" placeholder="Country code (e.g. DE)" maxlength="4">
+                    <input type="text" id="new-country-name-input" data-i18n-placeholder="newCountryNamePh" placeholder="Country name">
+                    <input type="text" id="new-country-flag-input" data-i18n-placeholder="newCountryFlagPh" placeholder="Flag emoji (optional)" maxlength="4">
+                </div>
+
+                <fieldset class="tags-fieldset">
+                    <legend data-i18n="tagsFieldLabel">Tags (optional)</legend>
+                    <label><input type="checkbox" name="dns-tag" value="gaming"> <span data-i18n="tagGaming">🎮 Gaming</span></label>
+                    <label><input type="checkbox" name="dns-tag" value="security"> <span data-i18n="tagSecurity">🛡️ Security</span></label>
+                    <label><input type="checkbox" name="dns-tag" value="ad-block"> <span data-i18n="tagAdBlock">🚫 Ad-block</span></label>
+                    <label><input type="checkbox" name="dns-tag" value="family"> <span data-i18n="tagFamily">👪 Family</span></label>
+                    <label><input type="checkbox" name="dns-tag" value="sanctions-bypass"> <span data-i18n="tagSanctions">🔓 Sanctions bypass</span></label>
+                </fieldset>
+
+                <button type="submit" id="dns-form-submit-btn" data-i18n="addBtn">Add DNS</button>
             </form>
         </div>
     </div>
