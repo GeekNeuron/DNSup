@@ -143,33 +143,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* =========================================================
-     * Theme (persisted)
+     * Theme (persisted) — dark is the default now
      * ========================================================= */
-    const header = document.getElementById('header');
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const themeToggleIcon = themeToggleBtn.querySelector('.material-icons');
     const savedTheme = localStorage.getItem('dnsup_theme');
-    if (savedTheme === 'dark') {
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        document.body.classList.remove('dark-theme');
+    } else {
         document.body.classList.add('dark-theme');
         document.body.classList.remove('light-theme');
     }
-    header.addEventListener('click', (e) => {
-        if (e.target.closest('#lang-toggle-btn')) return;
+    const updateThemeIcon = () => {
+        const isDark = document.body.classList.contains('dark-theme');
+        themeToggleIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
+    };
+    updateThemeIcon();
+    themeToggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark-theme');
+        document.body.classList.toggle('light-theme');
         localStorage.setItem('dnsup_theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        updateThemeIcon();
     });
 
     /* =========================================================
-     * View switcher
+     * View switcher — shared between the desktop top-nav and the
+     * mobile bottom-nav (both use [data-view], kept in sync)
      * ========================================================= */
-    const footerItems = document.querySelectorAll('.footer-item');
+    const viewSwitchButtons = document.querySelectorAll('[data-view]');
     const mainViews = {
         'dns-check-view': document.getElementById('dns-check-view'),
         'speed-test-view': document.getElementById('speed-test-view')
     };
-    footerItems.forEach(item => {
+    viewSwitchButtons.forEach(item => {
         item.addEventListener('click', () => {
-            footerItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
             const viewId = item.getAttribute('data-view');
+            viewSwitchButtons.forEach(i => i.classList.toggle('active', i.getAttribute('data-view') === viewId));
             Object.values(mainViews).forEach(view => view.classList.add('hidden'));
             mainViews[viewId].classList.remove('hidden');
         });
@@ -260,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="ping-badge"></span>
                 </div>
                 <span class="material-icons favorite-btn ${dns.isFavorite ? 'favorited' : ''}" role="button" tabindex="0" aria-label="favorite">star_border</span>
-                <span class="material-icons edit-btn" role="button" tabindex="0" aria-label="edit">edit</span>
+                ${dns.isCustom ? `<span class="material-icons edit-btn" role="button" tabindex="0" aria-label="edit">edit</span>` : ''}
                 <span class="material-icons delete-btn" role="button" tabindex="0" aria-label="delete">delete</span>
             </div>
             <div class="live-chart-container">
@@ -299,10 +309,13 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             toggleFavorite(dns.id);
         });
-        tile.querySelector('.edit-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            openEditModal(dns);
-        });
+        const editBtn = tile.querySelector('.edit-btn');
+        if (editBtn) {
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEditModal(dns);
+            });
+        }
         tile.querySelector('.delete-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             deleteDns(dns.id);
@@ -863,13 +876,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadValueEl = document.getElementById('download-value');
     const uploadValueEl = document.getElementById('upload-value');
     const speedErrorEl = document.getElementById('speed-test-error');
-    const gaugeFillEl = document.querySelector('.gauge-fill');
     const speedMethodEl = document.getElementById('speed-method-note');
+    const speedPhaseLabelEl = document.getElementById('speed-phase-label');
 
-    const updateGauge = (mbps) => {
-        const maxScale = 200;
-        const pct = Math.min(mbps / maxScale, 1);
-        if (gaugeFillEl) gaugeFillEl.style.transform = `rotate(${pct * 180}deg)`;
+    /* ---------- live line chart (replaces the old rotating gauge) ---------- */
+    const SPEED_CHART_POINTS = 50;
+    let speedChart = null;
+    const getSpeedChart = () => {
+        if (speedChart) return speedChart;
+        const canvas = document.getElementById('speed-live-chart');
+        if (!canvas) return null;
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.clientHeight || 220);
+        gradient.addColorStop(0, 'rgba(96, 165, 250, 0.45)');
+        gradient.addColorStop(1, 'rgba(139, 92, 246, 0.02)');
+        speedChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(SPEED_CHART_POINTS).fill(''),
+                datasets: [{
+                    data: Array(SPEED_CHART_POINTS).fill(null),
+                    borderColor: '#60a5fa',
+                    backgroundColor: gradient,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    tension: 0.35,
+                    spanGaps: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { display: false, min: 0 }
+                },
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+        return speedChart;
+    };
+
+    const resetSpeedChart = () => {
+        const chart = getSpeedChart();
+        if (!chart) return;
+        chart.data.datasets[0].data = Array(SPEED_CHART_POINTS).fill(null);
+        chart.update('none');
+    };
+
+    const pushSpeedSample = (mbps) => {
+        const chart = getSpeedChart();
+        speedValueEl.textContent = mbps.toFixed(2);
+        if (!chart) return;
+        const data = chart.data.datasets[0].data;
+        data.shift();
+        data.push(mbps);
+        chart.update('none');
+    };
+
+    const setPhaseLabel = (key) => {
+        if (speedPhaseLabelEl) speedPhaseLabelEl.textContent = key ? t(key) : '';
+    };
+
+    // Fallback mode can't stream live per-sample data (see methodology note above), so instead
+    // of faking granular chart points we show a simple "measuring…" pulse on the big number
+    // and leave the chart flat — honest about what we actually know during that phase.
+    let measuringPulseHandle = null;
+    const startMeasuringPulse = () => {
+        speedValueEl.parentElement.classList.add('is-measuring');
+        let dots = 0;
+        measuringPulseHandle = setInterval(() => {
+            dots = (dots + 1) % 4;
+            speedValueEl.textContent = t('testing').replace(/\.*$/, '') + '.'.repeat(dots);
+        }, 400);
+    };
+    const stopMeasuringPulse = () => {
+        clearInterval(measuringPulseHandle);
+        speedValueEl.parentElement.classList.remove('is-measuring');
     };
 
     const LOCAL_DOWNLOAD_URL = 'speedtest-assets/download-payload.bin';
@@ -1003,18 +1088,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return elapsed > 0 ? (bytes * 8) / (elapsed * 1e6) : 0;
     };
 
-    // used only by the fallback engine, which can't stream live progress (see methodology note)
-    let pulseHandle = null;
-    const startPulse = () => {
-        let dir = 1, val = 0;
-        pulseHandle = setInterval(() => {
-            val += dir * 4;
-            if (val >= 100 || val <= 0) dir *= -1;
-            updateGauge(val);
-        }, 60);
-    };
-    const stopPulse = () => { clearInterval(pulseHandle); pulseHandle = null; };
-
     startSpeedTestBtn.addEventListener('click', async () => {
         startSpeedTestBtn.disabled = true;
         startSpeedTestBtn.textContent = t('testing');
@@ -1023,54 +1096,59 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadValueEl.textContent = '-';
         uploadValueEl.textContent = '-';
         speedValueEl.textContent = '0.00';
-        updateGauge(0);
+        resetSpeedChart();
+        setPhaseLabel(null);
 
         try {
             const support = await detectLocalSpeedTestSupport();
 
             if (support.download) {
                 if (speedMethodEl) { speedMethodEl.textContent = t('speedMethodLocal'); speedMethodEl.classList.remove('hidden'); }
+                setPhaseLabel('pingLabel');
                 const ping = await measureLocalLatency();
                 pingValueEl.textContent = ping;
 
-                const downMbps = await measureLocalDirection(LOCAL_DOWNLOAD_URL, 'GET', 8000, (mbps) => {
-                    updateGauge(mbps); speedValueEl.textContent = mbps.toFixed(2);
-                });
+                setPhaseLabel('downloadLabel');
+                const downMbps = await measureLocalDirection(LOCAL_DOWNLOAD_URL, 'GET', 8000, pushSpeedSample);
                 downloadValueEl.textContent = downMbps.toFixed(2);
 
                 if (support.upload) {
-                    const upMbps = await measureLocalDirection(LOCAL_UPLOAD_URL, 'POST', 8000, (mbps) => {
-                        updateGauge(mbps); speedValueEl.textContent = mbps.toFixed(2);
-                    });
+                    setPhaseLabel('uploadLabel');
+                    resetSpeedChart();
+                    const upMbps = await measureLocalDirection(LOCAL_UPLOAD_URL, 'POST', 8000, pushSpeedSample);
                     uploadValueEl.textContent = upMbps.toFixed(2);
                 } else {
                     uploadValueEl.textContent = '—';
                 }
             } else {
-                // fallback: same Cloudflare-based approximate method as before
+                // fallback: same Cloudflare-based approximate method as before — no live
+                // per-sample data available, so we're honest about "measuring" instead of
+                // faking a granular chart
                 if (speedMethodEl) { speedMethodEl.textContent = t('speedMethodFallback'); speedMethodEl.classList.remove('hidden'); }
+                setPhaseLabel('pingLabel');
                 const ping = await measureRemoteLatency();
                 pingValueEl.textContent = ping;
 
-                startPulse();
+                setPhaseLabel('downloadLabel');
+                startMeasuringPulse();
                 const downMbps = await measureRemoteDownload(20_000_000);
-                stopPulse();
+                stopMeasuringPulse();
                 downloadValueEl.textContent = downMbps.toFixed(2);
-                speedValueEl.textContent = downMbps.toFixed(2);
-                updateGauge(downMbps);
+                pushSpeedSample(downMbps);
 
-                startPulse();
+                setPhaseLabel('uploadLabel');
+                startMeasuringPulse();
                 const upMbps = await measureRemoteUpload(5_000_000);
-                stopPulse();
+                stopMeasuringPulse();
                 uploadValueEl.textContent = upMbps.toFixed(2);
-                speedValueEl.textContent = upMbps.toFixed(2);
-                updateGauge(upMbps);
+                pushSpeedSample(upMbps);
             }
         } catch (err) {
             speedErrorEl.textContent = t('speedTestError');
             speedErrorEl.classList.remove('hidden');
         } finally {
-            stopPulse();
+            stopMeasuringPulse();
+            setPhaseLabel(null);
             startSpeedTestBtn.disabled = false;
             startSpeedTestBtn.textContent = t('go');
         }

@@ -3,77 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#0b1120">
     <title>DNSup</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="light-theme">
+<body class="dark-theme">
 
-    <header id="header" role="button" tabindex="0" aria-label="toggle dark mode">
-        <button id="lang-toggle-btn" class="lang-toggle" type="button" aria-label="toggle language">EN</button>
-        <h1>DNSup</h1>
+    <header id="app-header">
+        <div class="header-inner">
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true">
+                    <span class="material-icons">hub</span>
+                </span>
+                <h1>DNSup</h1>
+            </div>
+
+            <nav class="desktop-nav" aria-label="main navigation">
+                <button class="nav-link active" data-view="dns-check-view">
+                    <span class="material-icons" aria-hidden="true">dns</span>
+                    <span data-i18n="dnsCheckTab">DNS Check</span>
+                </button>
+                <button class="nav-link" data-view="speed-test-view">
+                    <span class="material-icons" aria-hidden="true">speed</span>
+                    <span data-i18n="speedTestTab">Speed Test</span>
+                </button>
+            </nav>
+
+            <div class="header-actions">
+                <button id="theme-toggle-btn" class="icon-btn" type="button" aria-label="toggle dark mode">
+                    <span class="material-icons" aria-hidden="true">light_mode</span>
+                </button>
+                <button id="lang-toggle-btn" class="lang-toggle" type="button" aria-label="toggle language">EN</button>
+            </div>
+        </div>
     </header>
 
     <main id="main-content">
         <div id="dns-check-view">
-            <div id="data-load-error" class="banner-error hidden" role="alert"></div>
-            <div class="banner-info" data-i18n="pingDisclaimer">Ping methodology note</div>
-            <div class="banner-info" data-i18n="tagsAreInformational">Tags note</div>
-            <div class="toolbar">
-                <button id="sort-by-ping"><span data-i18n="sortByPing">Sort by Ping</span> <span class="material-icons" aria-hidden="true">sort</span></button>
-                <label for="country-filter" class="visually-hidden" data-i18n="countryLabel">Country:</label>
-                <select id="country-filter">
-                    <option value="ALL" data-i18n="countryAll">All</option>
-                    <option value="GLOBAL" data-i18n="countryGlobal">Global</option>
-                    <option value="IR" data-i18n="countryIR">Iran</option>
-                    <option value="RU" data-i18n="countryRU">Russia</option>
-                    <option value="CUSTOM" data-i18n="countryCustom">My custom</option>
-                </select>
-                <button id="add-dns-btn" aria-label="Add DNS">+</button>
+            <div class="view-inner">
+                <div id="data-load-error" class="banner-error hidden" role="alert"></div>
+                <div class="banner-info" data-i18n="pingDisclaimer">Ping methodology note</div>
+                <div class="banner-info" data-i18n="tagsAreInformational">Tags note</div>
+                <div class="toolbar">
+                    <button id="sort-by-ping"><span data-i18n="sortByPing">Sort by Ping</span> <span class="material-icons" aria-hidden="true">sort</span></button>
+                    <label for="country-filter" class="visually-hidden" data-i18n="countryLabel">Country:</label>
+                    <select id="country-filter">
+                        <option value="ALL" data-i18n="countryAll">All</option>
+                        <option value="GLOBAL" data-i18n="countryGlobal">Global</option>
+                        <option value="IR" data-i18n="countryIR">Iran</option>
+                        <option value="RU" data-i18n="countryRU">Russia</option>
+                        <option value="CUSTOM" data-i18n="countryCustom">My custom</option>
+                    </select>
+                    <button id="add-dns-btn" aria-label="Add DNS"><span class="material-icons" aria-hidden="true">add</span></button>
+                </div>
+                <div id="no-country-results" class="banner-info hidden" data-i18n="noResultsForCountry">No entries for this country yet.</div>
+                <div id="favorites-list" class="dns-grid"></div>
+                <div id="dns-list" class="dns-grid"></div>
             </div>
-            <div id="no-country-results" class="banner-info hidden" data-i18n="noResultsForCountry">No entries for this country yet.</div>
-            <div id="favorites-list"></div>
-            <div id="dns-list"></div>
         </div>
 
         <div id="speed-test-view" class="hidden">
-            <div class="speed-test-container">
+            <div class="view-inner speed-test-container">
                 <div id="speed-test-error" class="banner-error hidden" role="alert"></div>
                 <div class="banner-info" data-i18n="speedDisclaimer">Speed test methodology note</div>
                 <div id="speed-method-note" class="banner-info hidden"></div>
-                <div class="gauge">
-                    <div class="gauge-body">
-                        <div class="gauge-fill"></div>
-                        <div class="gauge-cover">
-                            <div id="speed-value">0.00</div>
-                            <div>Mbps</div>
+
+                <div class="speed-chart-card">
+                    <div class="speed-chart-wrap">
+                        <canvas id="speed-live-chart"></canvas>
+                    </div>
+                    <div class="speed-big-readout">
+                        <span id="speed-value">0.00</span>
+                        <span class="speed-unit">Mbps</span>
+                    </div>
+                    <div id="speed-phase-label" class="speed-phase-label"></div>
+                </div>
+
+                <div class="speed-stats-grid">
+                    <div class="stat-card">
+                        <span class="material-icons stat-icon" aria-hidden="true">network_ping</span>
+                        <div class="stat-text">
+                            <b id="ping-value">-</b>
+                            <small><span data-i18n="pingLabel">Ping</span> (ms)</small>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="material-icons stat-icon" aria-hidden="true">download</span>
+                        <div class="stat-text">
+                            <b id="download-value">-</b>
+                            <small><span data-i18n="downloadLabel">Download</span> (Mbps)</small>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="material-icons stat-icon" aria-hidden="true">upload</span>
+                        <div class="stat-text">
+                            <b id="upload-value">-</b>
+                            <small><span data-i18n="uploadLabel">Upload</span> (Mbps)</small>
                         </div>
                     </div>
                 </div>
-                <div class="speed-info">
-                    <div class="info-item">
-                        <span class="material-icons" aria-hidden="true">network_ping</span>
-                        <p><span data-i18n="pingLabel">Ping</span>: <span id="ping-value">-</span> ms</p>
-                    </div>
-                    <div class="info-item">
-                        <span class="material-icons" aria-hidden="true">download</span>
-                        <p><span data-i18n="downloadLabel">Download</span>: <span id="download-value">-</span> Mbps</p>
-                    </div>
-                    <div class="info-item">
-                        <span class="material-icons" aria-hidden="true">upload</span>
-                        <p><span data-i18n="uploadLabel">Upload</span>: <span id="upload-value">-</span> Mbps</p>
-                    </div>
-                </div>
+
                 <button id="start-speed-test-btn" data-i18n="go">GO</button>
             </div>
         </div>
     </main>
 
-    <footer>
+    <footer class="mobile-nav">
         <div class="footer-item active" data-view="dns-check-view">
             <span class="material-icons" aria-hidden="true">dns</span>
             <p data-i18n="dnsCheckTab">DNS Check</p>
