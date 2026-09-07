@@ -51,12 +51,25 @@
                 <div class="banner-info" data-i18n="tagsAreInformational">Tags note</div>
                 <div class="toolbar">
                     <button id="sort-by-ping"><span data-i18n="sortByPing">Sort by Ping</span> <span class="material-icons" aria-hidden="true">sort</span></button>
+                    <label for="auto-sort-select" class="visually-hidden" data-i18n="autoSortLabel">Auto-sort:</label>
+                    <select id="auto-sort-select">
+                        <option value="off" data-i18n="autoSortOff">Auto-sort: off</option>
+                        <option value="ping" data-i18n="autoSortPing">Auto-sort: by ping</option>
+                        <option value="connectivity" data-i18n="autoSortConnectivity">Auto-sort: by connectivity</option>
+                    </select>
                     <label for="country-filter" class="visually-hidden" data-i18n="countryLabel">Country:</label>
                     <select id="country-filter">
                         <option value="ALL" data-i18n="countryAll">All</option>
                         <option value="GLOBAL" data-i18n="countryGlobal">Global</option>
                         <option value="IR" data-i18n="countryIR">Iran</option>
                         <option value="RU" data-i18n="countryRU">Russia</option>
+                        <option value="CN" data-i18n="countryCN">China</option>
+                        <option value="TW" data-i18n="countryTW">Taiwan</option>
+                        <option value="CZ" data-i18n="countryCZ">Czech Republic</option>
+                        <option value="FR" data-i18n="countryFR">France</option>
+                        <option value="EU" data-i18n="countryEU">European Union</option>
+                        <option value="DE" data-i18n="countryDE">Germany</option>
+                        <option value="DK" data-i18n="countryDK">Denmark</option>
                         <option value="CUSTOM" data-i18n="countryCustom">My custom</option>
                     </select>
                     <button id="add-dns-btn" aria-label="Add DNS"><span class="material-icons" aria-hidden="true">add</span></button>
@@ -140,6 +153,13 @@
                     <option value="GLOBAL" data-i18n="countryGlobal">Global</option>
                     <option value="IR" data-i18n="countryIR">Iran</option>
                     <option value="RU" data-i18n="countryRU">Russia</option>
+                    <option value="CN" data-i18n="countryCN">China</option>
+                    <option value="TW" data-i18n="countryTW">Taiwan</option>
+                    <option value="CZ" data-i18n="countryCZ">Czech Republic</option>
+                    <option value="FR" data-i18n="countryFR">France</option>
+                    <option value="EU" data-i18n="countryEU">European Union</option>
+                        <option value="DE" data-i18n="countryDE">Germany</option>
+                        <option value="DK" data-i18n="countryDK">Denmark</option>
                     <option value="__new__" data-i18n="countryAddNew">+ Add new country…</option>
                 </select>
                 <div id="new-country-fields" class="hidden">

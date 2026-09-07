@@ -181,5 +181,121 @@
             "sanctions-bypass"
         ],
         "verified": "2026-09"
+    },
+    {
+        "name": "AliDNS",
+        "primary_ip": "223.5.5.5",
+        "secondary_ip": "223.6.6.6",
+        "ipv6": "2400:3200::1",
+        "doh_url": null,
+        "country": "CN",
+        "tags": []
+    },
+    {
+        "name": "114DNS",
+        "primary_ip": "114.114.114.114",
+        "secondary_ip": "114.114.115.115",
+        "ipv6": "",
+        "doh_url": null,
+        "country": "CN",
+        "tags": []
+    },
+    {
+        "name": "Baidu DNS",
+        "primary_ip": "180.76.76.76",
+        "secondary_ip": "",
+        "ipv6": "2400:da00::6666",
+        "doh_url": null,
+        "country": "CN",
+        "tags": []
+    },
+    {
+        "name": "DNSPod Public DNS+",
+        "primary_ip": "119.29.29.29",
+        "secondary_ip": "119.28.28.28",
+        "ipv6": "2402:4e00::",
+        "doh_url": "https://doh.pub/dns-query",
+        "country": "CN",
+        "tags": []
+    },
+    {
+        "name": "Quad101 (TWNIC)",
+        "primary_ip": "101.101.101.101",
+        "secondary_ip": "101.102.103.104",
+        "ipv6": "2001:de4::101",
+        "doh_url": null,
+        "country": "TW",
+        "tags": []
+    },
+    {
+        "name": "CZ.NIC ODVR",
+        "primary_ip": "193.17.47.1",
+        "secondary_ip": "185.43.135.1",
+        "ipv6": "2001:148f:ffff::1",
+        "doh_url": "https://odvr.nic.cz/doh",
+        "country": "CZ",
+        "tags": [
+            "security"
+        ]
+    },
+    {
+        "name": "FDN",
+        "primary_ip": "80.67.169.12",
+        "secondary_ip": "80.67.169.40",
+        "ipv6": "2001:910:800::12",
+        "doh_url": null,
+        "country": "FR",
+        "tags": []
+    },
+    {
+        "name": "DNS4EU (Unfiltered)",
+        "primary_ip": "86.54.11.100",
+        "secondary_ip": "86.54.11.200",
+        "ipv6": "2a13:1001::86:54:11:100",
+        "doh_url": "https://unfiltered.joindns4.eu/dns-query",
+        "country": "EU",
+        "tags": []
+    },
+    {
+        "name": "Neustar UltraDNS",
+        "primary_ip": "156.154.70.1",
+        "secondary_ip": "156.154.71.1",
+        "ipv6": "2610:a1:1018::1",
+        "doh_url": null,
+        "country": "GLOBAL",
+        "tags": [
+            "security"
+        ]
+    },
+    {
+        "name": "Hurricane Electric",
+        "primary_ip": "74.82.42.42",
+        "secondary_ip": "",
+        "ipv6": "",
+        "doh_url": null,
+        "country": "GLOBAL",
+        "tags": []
+    },
+    {
+        "name": "Digitalcourage",
+        "primary_ip": "5.9.164.112",
+        "secondary_ip": "",
+        "ipv6": "2a01:4f8:251:554::2",
+        "doh_url": null,
+        "country": "DE",
+        "tags": [
+            "security"
+        ]
+    },
+    {
+        "name": "UncensoredDNS",
+        "primary_ip": "91.239.100.100",
+        "secondary_ip": "89.233.43.71",
+        "ipv6": "2001:67c:28a4::",
+        "doh_url": "https://anycast.uncensoreddns.org/dns-query",
+        "country": "DK",
+        "tags": [
+            "security"
+        ]
     }
 ]

@@ -33,10 +33,21 @@ document.addEventListener('DOMContentLoaded', () => {
             protocol4: 'IPv4',
             protocol46: 'IPv4/IPv6',
             countryLabel: 'کشور:',
+            autoSortLabel: 'مرتب‌سازی خودکار:',
+            autoSortOff: 'مرتب‌سازی خودکار: خاموش',
+            autoSortPing: 'مرتب‌سازی خودکار: بر اساس پینگ',
+            autoSortConnectivity: 'مرتب‌سازی خودکار: بر اساس اتصال',
             countryAll: 'همه',
             countryGlobal: 'جهانی',
             countryIR: 'ایران',
             countryRU: 'روسیه',
+            countryCN: 'چین',
+            countryTW: 'تایوان',
+            countryCZ: 'جمهوری چک',
+            countryFR: 'فرانسه',
+            countryEU: 'اتحادیهٔ اروپا',
+            countryDE: 'آلمان',
+            countryDK: 'دانمارک',
             countryCustom: 'سفارشی من',
             noResultsForCountry: 'برای این کشور موردی یافت نشد.',
             tagGaming: '🎮 گیمینگ',
@@ -51,13 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
             countryFieldLabel: 'کشور (اختیاری)',
             countryNone: 'بدون کشور (فقط سفارشی)',
             countryAddNew: '+ افزودن کشور جدید…',
+            countryCodeTaken: 'این کد کشور قبلاً وجود دارد — از لیست بالا انتخابش کنید یا کد دیگری بگذارید.',
             newCountryCodePh: 'کد کشور (مثلاً DE)',
             newCountryNamePh: 'نام کشور',
             newCountryFlagPh: 'اموجی پرچم (اختیاری)',
             tagsFieldLabel: 'برچسب‌ها (اختیاری)',
             verifiedOn: 'آخرین تأیید آدرس:',
             speedMethodLocal: '✅ اندازه‌گیری واقعی (فایل‌های تست هم‌مبدأ) — پیشرفت زنده و دقیق',
-            speedMethodFallback: '⚠️ حالت پشتیبان (Cloudflare، بدون پیشرفت زنده) — فایل‌های تست هم‌مبدأ در دسترس نیستند'
+            speedMethodFallback: '⚠️ حالت پشتیبان (Cloudflare، بدون پیشرفت زنده) — فایل‌های تست هم‌مبدأ در دسترس نیستند',
+            speedMethodUploadFallback: '⚠️ دانلود واقعی، ولی آپلود از روش پشتیبان (Cloudflare) — میزبان شما درخواست POST به فایل استاتیک را نمی‌پذیرد (طبیعی روی GitHub Pages و مشابه)'
         },
         en: {
             sortByPing: 'Sort by Ping',
@@ -88,10 +101,21 @@ document.addEventListener('DOMContentLoaded', () => {
             protocol4: 'IPv4',
             protocol46: 'IPv4/IPv6',
             countryLabel: 'Country:',
+            autoSortLabel: 'Auto-sort:',
+            autoSortOff: 'Auto-sort: off',
+            autoSortPing: 'Auto-sort: by ping',
+            autoSortConnectivity: 'Auto-sort: by connectivity',
             countryAll: 'All',
             countryGlobal: 'Global',
             countryIR: 'Iran',
             countryRU: 'Russia',
+            countryCN: 'China',
+            countryTW: 'Taiwan',
+            countryCZ: 'Czech Republic',
+            countryFR: 'France',
+            countryEU: 'European Union',
+            countryDE: 'Germany',
+            countryDK: 'Denmark',
             countryCustom: 'My custom',
             noResultsForCountry: 'No entries for this country yet.',
             tagGaming: '🎮 Gaming',
@@ -106,13 +130,15 @@ document.addEventListener('DOMContentLoaded', () => {
             countryFieldLabel: 'Country (optional)',
             countryNone: 'No country (custom only)',
             countryAddNew: '+ Add new country…',
+            countryCodeTaken: 'This country code already exists — pick it from the list above, or choose a different code.',
             newCountryCodePh: 'Country code (e.g. DE)',
             newCountryNamePh: 'Country name',
             newCountryFlagPh: 'Flag emoji (optional)',
             tagsFieldLabel: 'Tags (optional)',
             verifiedOn: 'Address last verified:',
             speedMethodLocal: '✅ Real measurement (same-origin test files) — live, accurate progress',
-            speedMethodFallback: '⚠️ Fallback mode (Cloudflare, no live progress) — same-origin test files unavailable'
+            speedMethodFallback: '⚠️ Fallback mode (Cloudflare, no live progress) — same-origin test files unavailable',
+            speedMethodUploadFallback: '⚠️ Real download, but upload used the fallback method (Cloudflare) — your host rejects POST to a static file (normal on GitHub Pages and similar)'
         }
     };
 
@@ -220,10 +246,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const getPingColor = (ping) => {
-        if (ping == null || ping < 0) return '#888';
-        if (ping < 100) return 'var(--ping-green)';
-        if (ping < 200) return 'var(--ping-yellow)';
-        return 'var(--ping-red)';
+        if (ping == null || ping < 0) return '#8a94a8';
+        if (ping < 100) return 'var(--good-1)';
+        if (ping < 200) return 'var(--warn)';
+        return 'var(--bad-1)';
+    };
+    const getPingStatus = (ping) => {
+        if (ping == null || ping < 0) return '';
+        if (ping < 100) return 'good';
+        if (ping < 200) return 'warn';
+        return 'bad';
     };
 
     /* ---------- persistence helpers ---------- */
@@ -240,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const TAG_LABELS = { gaming: 'tagGaming', security: 'tagSecurity', 'ad-block': 'tagAdBlock', family: 'tagFamily', 'sanctions-bypass': 'tagSanctions' };
-    const COUNTRY_FLAGS = { GLOBAL: '🌐', IR: '🇮🇷', RU: '🇷🇺' };
+    const COUNTRY_FLAGS = { GLOBAL: '🌐', IR: '🇮🇷', RU: '🇷🇺', CN: '🇨🇳', TW: '🇹🇼', CZ: '🇨🇿', FR: '🇫🇷', EU: '🇪🇺', DE: '🇩🇪', DK: '🇩🇰' };
 
     /* ---------- tile creation (called ONCE per id) ---------- */
     const createDnsTile = (dns) => {
@@ -256,11 +288,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tile.innerHTML = `
             <div class="dns-info">
                 <div class="dns-name">${flag} <span class="name-text">${escapeHtml(dns.name)}</span> <span class="best-badge hidden">🏆</span></div>
-                <div class="dns-ips" title="${dns.verified ? escapeHtml(t('verifiedOn') + ' ' + dns.verified) : ''}">
-                    ${escapeHtml(dns.primary_ip)}<br>
-                    ${escapeHtml(dns.secondary_ip || '')}
+                <div class="dns-meta-row" title="${dns.verified ? escapeHtml(t('verifiedOn') + ' ' + dns.verified) : ''}">
+                    <span class="dns-ips">${escapeHtml(dns.primary_ip)}${dns.secondary_ip ? ', ' + escapeHtml(dns.secondary_ip) : ''}</span>
+                    <span class="dns-protocol">${dns.ipv6 ? t('protocol46') : t('protocol4')}</span>
                 </div>
-                <span class="dns-protocol">${dns.ipv6 ? t('protocol46') : t('protocol4')}</span>
                 ${tagsHtml ? `<div class="tags-row">${tagsHtml}</div>` : ''}
                 ${dns.localOnly ? `<div class="local-only-note">${escapeHtml(t('localOnlyNote'))}</div>` : ''}
             </div>
@@ -368,8 +399,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const collapsedGroups = new Set(JSON.parse(localStorage.getItem('dnsup_collapsed_groups') || '[]'));
+    const persistCollapsedGroups = () => localStorage.setItem('dnsup_collapsed_groups', JSON.stringify([...collapsedGroups]));
+
+    const groupFlag = (key) => COUNTRY_FLAGS[key] || (customCountries[key] && customCountries[key].flag) || (key === 'CUSTOM' ? '⚙️' : '🏳️');
+    const groupLabel = (key) => key === 'CUSTOM' ? t('countryCustom') : countryLabelFor(key);
+
+    const createGroupHeader = (key, count) => {
+        const header = document.createElement('div');
+        header.className = 'country-group-header' + (collapsedGroups.has(key) ? ' collapsed' : '');
+        header.setAttribute('role', 'button');
+        header.setAttribute('tabindex', '0');
+        header.innerHTML = `
+            <span class="material-icons chevron" aria-hidden="true">expand_more</span>
+            <span class="group-flag">${groupFlag(key)}</span>
+            <span class="group-label">${escapeHtml(groupLabel(key))}</span>
+            <span class="group-count">${count}</span>
+        `;
+        const toggle = () => {
+            if (collapsedGroups.has(key)) collapsedGroups.delete(key); else collapsedGroups.add(key);
+            persistCollapsedGroups();
+            renderAll();
+        };
+        header.addEventListener('click', toggle);
+        header.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+        return header;
+    };
+
     const renderAll = () => {
         let visibleCount = 0;
+        const groups = new Map(); // country/CUSTOM code -> tiles[], only used when grouping is active
+        const flatTiles = [];
+        const grouping = countryFilter === 'ALL' && autoSortMode === 'off';
+
         dnsData.forEach(dns => {
             let tile = tileElements.get(dns.id);
             if (!tile) tile = createDnsTile(dns);
@@ -377,13 +439,38 @@ document.addEventListener('DOMContentLoaded', () => {
             favBtn.classList.toggle('favorited', !!dns.isFavorite);
             const visible = matchesCountryFilter(dns);
             tile.classList.toggle('hidden', !visible);
-            if (visible) {
-                visibleCount++;
-                (dns.isFavorite ? favoritesListContainer : dnsListContainer).appendChild(tile);
+            if (!visible) { tile.remove(); return; }
+            visibleCount++;
+            if (dns.isFavorite) {
+                favoritesListContainer.appendChild(tile);
+                return;
+            }
+            if (grouping) {
+                const key = dns.country || 'CUSTOM';
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(tile);
             } else {
-                tile.remove();
+                flatTiles.push(tile);
             }
         });
+
+        dnsListContainer.innerHTML = '';
+        if (grouping) {
+            const orderedKeys = [...BASE_COUNTRIES.map((c) => c.code), ...Object.keys(customCountries), 'CUSTOM'];
+            orderedKeys.forEach((key) => {
+                const tiles = groups.get(key);
+                if (!tiles || tiles.length === 0) return;
+                dnsListContainer.appendChild(createGroupHeader(key, tiles.length));
+                const body = document.createElement('div');
+                body.className = 'dns-grid country-group-body';
+                if (collapsedGroups.has(key)) body.classList.add('hidden');
+                tiles.forEach((t) => body.appendChild(t));
+                dnsListContainer.appendChild(body);
+            });
+        } else {
+            flatTiles.forEach((t) => dnsListContainer.appendChild(t));
+        }
+
         if (noResultsEl) noResultsEl.classList.toggle('hidden', visibleCount > 0 || dnsData.length === 0);
         updateFavoritesSeparator();
         updateBestBadge();
@@ -417,6 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pingDisplay.textContent = ms < 0 ? t('timeout') : `${ms} ms`;
             pingDisplay.style.color = getPingColor(ms);
         }
+        tile.dataset.status = getPingStatus(ms);
         if (badge) badge.textContent = type === 'exact' ? t('exact') : t('approx');
         if (chart) {
             chart.data.datasets[0].data.shift();
@@ -425,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
             chart.update();
         }
         updateBestBadge();
+        scheduleAutoSort();
     };
 
     // Per-provider capability cache: some DoH endpoints MAY send Access-Control-Allow-Origin
@@ -543,16 +632,60 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /* ---------- sort (id-based state means sorting is now safe) ---------- */
+    const compareByPing = (a, b) => {
+        if (a.isFavorite && !b.isFavorite) return -1;
+        if (!a.isFavorite && b.isFavorite) return 1;
+        const pingA = (a.ping ?? Infinity) < 0 ? Infinity : (a.ping ?? Infinity);
+        const pingB = (b.ping ?? Infinity) < 0 ? Infinity : (b.ping ?? Infinity);
+        return pingA - pingB;
+    };
+
+    // connectivity rank: 0 = answered, 1 = not measured yet, 2 = confirmed timeout —
+    // this way a server we simply haven't pinged yet isn't lumped in with one that's
+    // actually confirmed unreachable
+    const connectivityRank = (dns) => {
+        if (dns.ping != null && dns.ping >= 0) return 0;
+        if (dns.ping == null) return 1;
+        return 2;
+    };
+    const compareByConnectivity = (a, b) => {
+        if (a.isFavorite && !b.isFavorite) return -1;
+        if (!a.isFavorite && b.isFavorite) return 1;
+        const rankDiff = connectivityRank(a) - connectivityRank(b);
+        if (rankDiff !== 0) return rankDiff;
+        return (a.ping ?? Infinity) - (b.ping ?? Infinity);
+    };
+
     document.getElementById('sort-by-ping').addEventListener('click', () => {
-        dnsData.sort((a, b) => {
-            if (a.isFavorite && !b.isFavorite) return -1;
-            if (!a.isFavorite && b.isFavorite) return 1;
-            const pingA = (a.ping ?? Infinity) < 0 ? Infinity : (a.ping ?? Infinity);
-            const pingB = (b.ping ?? Infinity) < 0 ? Infinity : (b.ping ?? Infinity);
-            return pingA - pingB;
-        });
+        dnsData.sort(compareByPing);
         renderAll();
     });
+
+    /* auto-sort: continuously keeps the list ordered by the chosen criterion as new
+       ping results come in, instead of requiring a manual click every time */
+    let autoSortMode = localStorage.getItem('dnsup_auto_sort') || 'off';
+    const autoSortSelect = document.getElementById('auto-sort-select');
+    if (autoSortSelect) {
+        autoSortSelect.value = autoSortMode;
+        autoSortSelect.addEventListener('change', () => {
+            autoSortMode = autoSortSelect.value;
+            localStorage.setItem('dnsup_auto_sort', autoSortMode);
+            applyAutoSort();
+        });
+    }
+    const applyAutoSort = () => {
+        if (autoSortMode === 'ping') dnsData.sort(compareByPing);
+        else if (autoSortMode === 'connectivity') dnsData.sort(compareByConnectivity);
+        // always re-render — even for 'off', so the view switches back to the grouped
+        // layout instead of staying stuck in the flat auto-sorted arrangement
+        renderAll();
+    };
+    let autoSortDebounceHandle = null;
+    const scheduleAutoSort = () => {
+        if (autoSortMode === 'off') return;
+        clearTimeout(autoSortDebounceHandle);
+        autoSortDebounceHandle = setTimeout(applyAutoSort, 600);
+    };
 
     /* =========================================================
      * Add / Edit DNS modal (with real validation + XSS-safe rendering)
@@ -579,10 +712,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let customCountries = JSON.parse(localStorage.getItem('dnsup_custom_countries') || '{}');
     const persistCustomCountries = () => localStorage.setItem('dnsup_custom_countries', JSON.stringify(customCountries));
 
+    /* predefined countries shipped with the dataset — code, translation key, flag */
+    const BASE_COUNTRIES = [
+        { code: 'GLOBAL', key: 'countryGlobal', flag: '🌐' },
+        { code: 'IR', key: 'countryIR', flag: '🇮🇷' },
+        { code: 'RU', key: 'countryRU', flag: '🇷🇺' },
+        { code: 'CN', key: 'countryCN', flag: '🇨🇳' },
+        { code: 'TW', key: 'countryTW', flag: '🇹🇼' },
+        { code: 'CZ', key: 'countryCZ', flag: '🇨🇿' },
+        { code: 'FR', key: 'countryFR', flag: '🇫🇷' },
+        { code: 'EU', key: 'countryEU', flag: '🇪🇺' },
+        { code: 'DE', key: 'countryDE', flag: '🇩🇪' },
+        { code: 'DK', key: 'countryDK', flag: '🇩🇰' }
+    ];
+
     const countryLabelFor = (code) => {
-        if (code === 'GLOBAL') return t('countryGlobal');
-        if (code === 'IR') return t('countryIR');
-        if (code === 'RU') return t('countryRU');
+        const base = BASE_COUNTRIES.find((c) => c.code === code);
+        if (base) return t(base.key);
         if (customCountries[code]) return customCountries[code].label;
         return code;
     };
@@ -599,9 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
             countryFilterSelect.appendChild(opt);
         };
         addOpt('ALL', t('countryAll'));
-        addOpt('GLOBAL', t('countryGlobal'));
-        addOpt('IR', t('countryIR'));
-        addOpt('RU', t('countryRU'));
+        BASE_COUNTRIES.forEach((c) => addOpt(c.code, `${c.flag} ${t(c.key)}`));
         Object.keys(customCountries).forEach(code => {
             addOpt(code, `${customCountries[code].flag || '🏳️'} ${customCountries[code].label}`);
         });
@@ -705,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tile.querySelector('.dns-name .name-text').textContent = dns.name;
         tile.querySelector('.dns-name').firstChild.textContent = flag + ' ';
         const ipsEl = tile.querySelector('.dns-ips');
-        ipsEl.innerHTML = `${escapeHtml(dns.primary_ip)}<br>${escapeHtml(dns.secondary_ip || '')}`;
+        ipsEl.textContent = `${dns.primary_ip}${dns.secondary_ip ? ', ' + dns.secondary_ip : ''}`;
         tile.querySelector('.dns-protocol').textContent = dns.ipv6 ? t('protocol46') : t('protocol4');
         let tagsRow = tile.querySelector('.tags-row');
         const tagsHtml = (dns.tags || []).map(tag => `<span class="tag-badge">${escapeHtml(t(TAG_LABELS[tag] || tag))}</span>`).join('');
@@ -751,8 +895,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (country === '__new__') {
             const code = newCountryCodeInput.value.trim().toUpperCase();
             const label = newCountryNameInput.value.trim();
+            const codeTaken = BASE_COUNTRIES.some((c) => c.code === code) || Object.prototype.hasOwnProperty.call(customCountries, code);
             if (!code || !label) {
                 showFieldError(newCountryNameInput, t('requiredField'));
+                hasError = true;
+            } else if (codeTaken) {
+                showFieldError(newCountryCodeInput, t('countryCodeTaken'));
                 hasError = true;
             } else {
                 customCountries[code] = { label, flag: newCountryFlagInput.value.trim() || '🏳️' };
@@ -1118,7 +1266,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const upMbps = await measureLocalDirection(LOCAL_UPLOAD_URL, 'POST', 8000, pushSpeedSample);
                     uploadValueEl.textContent = upMbps.toFixed(2);
                 } else {
-                    uploadValueEl.textContent = '—';
+                    // local download works but the host rejects POST to a static file
+                    // (e.g. GitHub Pages returns 405) — fall back to the remote approximate
+                    // method just for the upload leg instead of leaving it blank
+                    if (speedMethodEl) { speedMethodEl.textContent = t('speedMethodUploadFallback'); speedMethodEl.classList.remove('hidden'); }
+                    setPhaseLabel('uploadLabel');
+                    startMeasuringPulse();
+                    const upMbps = await measureRemoteUpload(5_000_000);
+                    stopMeasuringPulse();
+                    uploadValueEl.textContent = upMbps.toFixed(2);
+                    pushSpeedSample(upMbps);
                 }
             } else {
                 // fallback: same Cloudflare-based approximate method as before — no live
