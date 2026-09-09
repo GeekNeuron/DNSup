@@ -8,9 +8,8 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="fonts/fonts.css">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="dark-theme">
 
@@ -87,12 +86,12 @@
                 <div id="speed-method-note" class="banner-info hidden"></div>
 
                 <div class="speed-chart-card">
-                    <div class="speed-chart-wrap">
-                        <canvas id="speed-live-chart"></canvas>
-                    </div>
-                    <div class="speed-big-readout">
-                        <span id="speed-value">0.00</span>
-                        <span class="speed-unit">Mbps</span>
+                    <div class="speed-gauge-wrap">
+                        <svg id="speed-gauge" viewBox="0 0 200 130" aria-hidden="true"></svg>
+                        <div class="speed-big-readout">
+                            <span id="speed-value">0.00</span>
+                            <span class="speed-unit">Mbps</span>
+                        </div>
                     </div>
                     <div id="speed-phase-label" class="speed-phase-label"></div>
                 </div>

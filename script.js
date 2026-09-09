@@ -1,6 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /* =========================================================
+     * Icon-font robustness
+     * =========================================================
+     * Material Icons is now self-hosted (fonts/fonts.css) instead of
+     * loaded from fonts.googleapis.com, which removes the main reason
+     * it could fail to load. But on the rare chance it still does
+     * (corrupted cache, file missing after a bad deploy, etc.), the
+     * fallback is literal ligature text like "download" rendered
+     * inside small fixed-size circular buttons that center + clip
+     * overflow — which shows an unreadable MIDDLE slice of the word
+     * (e.g. "download" -> "wnlo") instead of nothing or something
+     * legible. Detect that case and flip those buttons to left-align
+     * instead, so a clipped fallback reads as "down…" — a lesser, but
+     * real, improvement. See the ".icons-fallback" rules in style.css.
+     */
+    if (window.document && document.fonts && document.fonts.load) {
+        Promise.race([
+            document.fonts.load('24px "Material Icons"').then(() => document.fonts.check('24px "Material Icons"')),
+            new Promise((resolve) => setTimeout(() => resolve(false), 2500))
+        ]).then((loaded) => {
+            if (!loaded) document.documentElement.classList.add('icons-fallback');
+        }).catch(() => document.documentElement.classList.add('icons-fallback'));
+    }
+
+    /* =========================================================
      * i18n (Persian default / English toggle)
      * ========================================================= */
     const translations = {
@@ -160,6 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPingBadges();
         if (!startSpeedTestBtn.disabled) startSpeedTestBtn.textContent = t('go');
         if (typeof rebuildCountryFilterOptions === 'function') rebuildCountryFilterOptions();
+        // Country-group headers ("Global", "Iran", ...) are only built once per
+        // render inside createGroupHeader() — without this they'd keep showing
+        // the OLD language until some unrelated action (sort/filter/add/delete)
+        // happened to trigger the next renderAll(). renderAll() is safe to call
+        // here even before the initial DNS fetch resolves (dnsData starts as []).
+        if (typeof renderAll === 'function') renderAll();
     };
 
     document.getElementById('lang-toggle-btn').addEventListener('click', () => {
@@ -235,7 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const IPV4_RE = /^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}$/;
-    const IPV6_RE = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/;
+    // Extended beyond plain IPv6 groups to also accept IPv4-mapped/embedded forms
+    // (::ffff:a.b.c.d, 64:ff9b::a.b.c.d, etc.) — a real, valid notation that the
+    // previous version of this regex rejected outright.
+    const IPV6_RE = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4][0-9])|(1[0-9][0-9])|([1-9]?[0-9]))\.){3}(25[0-5]|(2[0-4][0-9])|(1[0-9][0-9])|([1-9]?[0-9]))|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4][0-9])|(1[0-9][0-9])|([1-9]?[0-9]))\.){3}(25[0-5]|(2[0-4][0-9])|(1[0-9][0-9])|([1-9]?[0-9]))|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/;
 
     const generateId = () => (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2);
 
@@ -287,10 +320,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tile.innerHTML = `
             <div class="dns-info">
-                <div class="dns-name">${flag} <span class="name-text">${escapeHtml(dns.name)}</span> <span class="best-badge hidden">🏆</span></div>
+                <div class="dns-name">${escapeHtml(flag)} <span class="name-text">${escapeHtml(dns.name)}</span> <span class="best-badge hidden">🏆</span></div>
                 <div class="dns-meta-row" title="${dns.verified ? escapeHtml(t('verifiedOn') + ' ' + dns.verified) : ''}">
                     <span class="dns-ips">${escapeHtml(dns.primary_ip)}${dns.secondary_ip ? ', ' + escapeHtml(dns.secondary_ip) : ''}</span>
                     <span class="dns-protocol">${dns.ipv6 ? t('protocol46') : t('protocol4')}</span>
+                    ${dns.verified ? `<button type="button" class="verified-badge" aria-label="${escapeHtml(t('verifiedOn') + ' ' + dns.verified)}">✓<span class="verified-date">${escapeHtml(dns.verified)}</span></button>` : ''}
                 </div>
                 ${tagsHtml ? `<div class="tags-row">${tagsHtml}</div>` : ''}
                 ${dns.localOnly ? `<div class="local-only-note">${escapeHtml(t('localOnlyNote'))}</div>` : ''}
@@ -351,6 +385,17 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             deleteDns(dns.id);
         });
+        // The "verified on <date>" info was only ever reachable via the native
+        // `title` tooltip on .dns-meta-row, i.e. hover-only — meaningless on a
+        // touchscreen, which most of this app's users are on (mobile-first).
+        // Tapping the ✓ badge now toggles the date inline instead.
+        const verifiedBadge = tile.querySelector('.verified-badge');
+        if (verifiedBadge) {
+            verifiedBadge.addEventListener('click', (e) => {
+                e.stopPropagation();
+                verifiedBadge.classList.toggle('expanded');
+            });
+        }
 
         return tile;
     };
@@ -412,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         header.setAttribute('tabindex', '0');
         header.innerHTML = `
             <span class="material-icons chevron" aria-hidden="true">expand_more</span>
-            <span class="group-flag">${groupFlag(key)}</span>
+            <span class="group-flag">${escapeHtml(groupFlag(key))}</span>
             <span class="group-label">${escapeHtml(groupLabel(key))}</span>
             <span class="group-count">${count}</span>
         `;
@@ -710,6 +755,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* custom countries the user has defined: { CODE: { label, flag } } */
     let customCountries = JSON.parse(localStorage.getItem('dnsup_custom_countries') || '{}');
+    // Defense in depth: the add-country form limits the flag field to 4 chars via
+    // maxlength, but that's a browser-side restriction only — anything with access
+    // to this origin's localStorage (devtools, a browser extension, a future import
+    // feature, etc.) could otherwise write an arbitrarily long string here. All
+    // render sites now HTML-escape this value (so it can no longer execute as
+    // markup), but we still clamp its length on load so a corrupted/tampered
+    // entry can't blow up tile layout with a huge string either.
+    Object.keys(customCountries).forEach((code) => {
+        const entry = customCountries[code];
+        if (entry && typeof entry.flag === 'string') entry.flag = entry.flag.slice(0, 4);
+        if (entry && typeof entry.label === 'string') entry.label = entry.label.slice(0, 60);
+    });
     const persistCustomCountries = () => localStorage.setItem('dnsup_custom_countries', JSON.stringify(customCountries));
 
     /* predefined countries shipped with the dataset — code, translation key, flag */
@@ -927,6 +984,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (dns.isCustom) {
                     persistCustomEntries();
                 } else {
+                    // Not reachable from the UI anymore (the ✏️ edit button only renders
+                    // for isCustom entries — see createDnsTile), since editing default
+                    // servers was intentionally removed. Kept only so any `dnsup_overrides`
+                    // data already saved in a returning user's browser (from before that
+                    // change) keeps being read correctly on load, further down.
                     const overrides = JSON.parse(localStorage.getItem('dnsup_overrides') || '{}');
                     overrides[dns.id] = { name, primary_ip: primary, secondary_ip: secondary, ipv6, country, tags };
                     localStorage.setItem('dnsup_overrides', JSON.stringify(overrides));
@@ -1027,61 +1089,93 @@ document.addEventListener('DOMContentLoaded', () => {
     const speedMethodEl = document.getElementById('speed-method-note');
     const speedPhaseLabelEl = document.getElementById('speed-phase-label');
 
-    /* ---------- live line chart (replaces the old rotating gauge) ---------- */
-    const SPEED_CHART_POINTS = 50;
-    let speedChart = null;
-    const getSpeedChart = () => {
-        if (speedChart) return speedChart;
-        const canvas = document.getElementById('speed-live-chart');
-        if (!canvas) return null;
-        const ctx = canvas.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.clientHeight || 220);
-        gradient.addColorStop(0, 'rgba(96, 165, 250, 0.45)');
-        gradient.addColorStop(1, 'rgba(139, 92, 246, 0.02)');
-        speedChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array(SPEED_CHART_POINTS).fill(''),
-                datasets: [{
-                    data: Array(SPEED_CHART_POINTS).fill(null),
-                    borderColor: '#60a5fa',
-                    backgroundColor: gradient,
-                    fill: true,
-                    borderWidth: 3,
-                    pointRadius: 0,
-                    tension: 0.35,
-                    spanGaps: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                scales: {
-                    x: { display: false },
-                    y: { display: false, min: 0 }
-                },
-                plugins: { legend: { display: false }, tooltip: { enabled: false } }
-            }
-        });
-        return speedChart;
+    /* ---------- car-style speedometer gauge (replaces the old live line chart) ---------- */
+    const GAUGE_CX = 100, GAUGE_CY = 108, GAUGE_R = 84;
+    // Auto-rescaling presets, like a real speed-test gauge that "grows" its dial
+    // as a fast connection outgrows the current scale, instead of pinning the
+    // needle at max or making slow connections unreadably close to zero.
+    const GAUGE_PRESETS = [5, 10, 25, 50, 100, 150, 250, 500, 1000, 2000, 5000];
+    let gaugeMax = 100;
+    const gaugeSvg = document.getElementById('speed-gauge');
+
+    // Point on the gauge's arc at math-angle theta (180deg = far left/minimum,
+    // 90deg = top/middle, 0deg = far right/maximum), at radius r from the pivot.
+    const gaugePoint = (theta, r) => {
+        const rad = (theta * Math.PI) / 180;
+        return { x: GAUGE_CX + r * Math.cos(rad), y: GAUGE_CY - r * Math.sin(rad) };
+    };
+    const gaugeArcPath = (r, fromDeg, toDeg) => {
+        const from = gaugePoint(fromDeg, r);
+        const to = gaugePoint(toDeg, r);
+        const largeArc = Math.abs(fromDeg - toDeg) > 180 ? 1 : 0;
+        return `M ${from.x} ${from.y} A ${r} ${r} 0 ${largeArc} 1 ${to.x} ${to.y}`;
     };
 
-    const resetSpeedChart = () => {
-        const chart = getSpeedChart();
-        if (!chart) return;
-        chart.data.datasets[0].data = Array(SPEED_CHART_POINTS).fill(null);
-        chart.update('none');
+    const buildGaugeStatic = () => {
+        if (!gaugeSvg) return;
+        // Zone bands: green 0-60%, amber 60-85%, red 85-100% of whatever the
+        // current scale is (purely decorative — see the CSS comment on why).
+        let svg = '';
+        svg += `<path id="gauge-zone-good" d="${gaugeArcPath(GAUGE_R, 180, 180 - 0.60 * 180)}" />`;
+        svg += `<path id="gauge-zone-mid" d="${gaugeArcPath(GAUGE_R, 180 - 0.60 * 180, 180 - 0.85 * 180)}" />`;
+        svg += `<path id="gauge-zone-hot" d="${gaugeArcPath(GAUGE_R, 180 - 0.85 * 180, 0)}" />`;
+
+        // Ticks: 24 steps, a major tick (with a number) every 4th one -> 0/20/40/60/80/100%
+        const totalTicks = 24;
+        for (let i = 0; i <= totalTicks; i++) {
+            const theta = 180 - (i / totalTicks) * 180;
+            const isMajor = i % 4 === 0;
+            const outer = gaugePoint(theta, GAUGE_R + 5);
+            const inner = gaugePoint(theta, GAUGE_R - (isMajor ? 11 : 5));
+            svg += `<line class="${isMajor ? 'gauge-tick-major' : 'gauge-tick-minor'}" x1="${outer.x.toFixed(2)}" y1="${outer.y.toFixed(2)}" x2="${inner.x.toFixed(2)}" y2="${inner.y.toFixed(2)}" />`;
+            if (isMajor) {
+                const labelPos = gaugePoint(theta, GAUGE_R - 24);
+                svg += `<text class="gauge-tick-label" data-fraction="${(i / totalTicks).toFixed(4)}" x="${labelPos.x.toFixed(2)}" y="${labelPos.y.toFixed(2)}" text-anchor="middle" dominant-baseline="middle">0</text>`;
+            }
+        }
+
+        // Needle drawn pointing straight up by default; CSS/JS rotate it around
+        // its own bottom-center (the pivot) to point at the current value.
+        const needleTip = gaugePoint(90, GAUGE_R - 16);
+        svg += `<line id="gauge-needle" x1="${GAUGE_CX}" y1="${GAUGE_CY}" x2="${needleTip.x.toFixed(2)}" y2="${needleTip.y.toFixed(2)}" />`;
+        svg += `<circle id="gauge-hub" cx="${GAUGE_CX}" cy="${GAUGE_CY}" r="6" />`;
+
+        gaugeSvg.innerHTML = svg;
     };
+
+    const updateGaugeScale = (max) => {
+        gaugeMax = max;
+        if (!gaugeSvg) return;
+        gaugeSvg.querySelectorAll('.gauge-tick-label').forEach((el) => {
+            const frac = parseFloat(el.dataset.fraction);
+            el.textContent = Math.round(frac * max);
+        });
+    };
+
+    const setGaugeValue = (mbps) => {
+        const v = Math.max(0, mbps || 0);
+        // Grow the scale (never shrink mid-test) once the needle gets close to
+        // the current max, snapping to the next "nice" preset.
+        if (v > gaugeMax * 0.92) {
+            const next = GAUGE_PRESETS.find((p) => p >= v * 1.1) || GAUGE_PRESETS[GAUGE_PRESETS.length - 1];
+            if (next > gaugeMax) updateGaugeScale(next);
+        }
+        const frac = Math.min(1, v / gaugeMax);
+        const needle = gaugeSvg && gaugeSvg.querySelector('#gauge-needle');
+        if (needle) needle.style.transform = `rotate(${(frac * 180 - 90).toFixed(2)}deg)`;
+    };
+
+    const resetGauge = () => {
+        updateGaugeScale(100);
+        setGaugeValue(0);
+    };
+
+    buildGaugeStatic();
+    resetGauge();
 
     const pushSpeedSample = (mbps) => {
-        const chart = getSpeedChart();
         speedValueEl.textContent = mbps.toFixed(2);
-        if (!chart) return;
-        const data = chart.data.datasets[0].data;
-        data.shift();
-        data.push(mbps);
-        chart.update('none');
+        setGaugeValue(mbps);
     };
 
     const setPhaseLabel = (key) => {
@@ -1244,7 +1338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadValueEl.textContent = '-';
         uploadValueEl.textContent = '-';
         speedValueEl.textContent = '0.00';
-        resetSpeedChart();
+        resetGauge();
         setPhaseLabel(null);
 
         try {
@@ -1262,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (support.upload) {
                     setPhaseLabel('uploadLabel');
-                    resetSpeedChart();
+                    resetGauge();
                     const upMbps = await measureLocalDirection(LOCAL_UPLOAD_URL, 'POST', 8000, pushSpeedSample);
                     uploadValueEl.textContent = upMbps.toFixed(2);
                 } else {

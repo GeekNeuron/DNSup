@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dnsup-shell-v1';
+const CACHE_NAME = 'dnsup-shell-v2'; // bumped: fonts are now part of the app shell
 const APP_SHELL = [
     './',
     './index.html',
@@ -7,7 +7,18 @@ const APP_SHELL = [
     './dns-data.json',
     './manifest.json',
     './icons/icon-192.png',
-    './icons/icon-512.png'
+    './icons/icon-512.png',
+    // Self-hosted fonts (replaces the old fonts.googleapis.com dependency) —
+    // caching these is what actually makes icons/typography work offline now;
+    // before this they were fetched from Google's CDN on every load and were
+    // never part of the offline app shell at all.
+    './fonts/fonts.css',
+    './fonts/material-icons-latin-400-normal.woff2',
+    './fonts/inter-latin-400-normal.woff2',
+    './fonts/inter-latin-500-normal.woff2',
+    './fonts/inter-latin-600-normal.woff2',
+    './fonts/inter-latin-700-normal.woff2',
+    './fonts/inter-latin-800-normal.woff2'
 ];
 
 self.addEventListener('install', (event) => {

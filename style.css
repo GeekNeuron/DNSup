@@ -92,6 +92,21 @@ body.dark-theme {
 
 .hidden { display: none !important; }
 
+/* Safety net for the rare case the self-hosted icon font fails to load
+   (see the detection in script.js). These buttons normally center their
+   icon glyph with overflow:hidden; if the fallback ligature TEXT shows up
+   instead, centering clips both edges into an unreadable middle fragment
+   (e.g. "download" -> "wnlo"). Left-aligning instead means a clipped
+   fallback reads as "down…" — not pretty, but legible. Does not affect
+   normal rendering (only applies once .icons-fallback is added to <html>). */
+html.icons-fallback .icon-btn,
+html.icons-fallback .favorite-btn,
+html.icons-fallback .delete-btn,
+html.icons-fallback .edit-btn,
+html.icons-fallback .stat-icon {
+    justify-content: flex-start;
+}
+
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -392,7 +407,7 @@ button, select, input {
     box-shadow: var(--shadow-soft);
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto 44px;
     gap: 6px 10px;
     align-items: center;
     max-width: 100%;
@@ -451,6 +466,35 @@ button, select, input {
     border: 1px solid var(--border-subtle);
     padding: 2px 8px;
     border-radius: 999px;
+}
+
+/* Tap-to-reveal replacement for the old hover-only "verified on <date>"
+   tooltip, which was unreachable on touchscreens. Collapsed by default
+   (just a small checkmark); tapping reveals the date inline. */
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--good-1);
+    background: none;
+    border: 1px solid var(--border-subtle);
+    border-radius: 999px;
+    padding: 2px 6px;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.verified-badge .verified-date {
+    display: none;
+    margin-inline-start: 4px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.verified-badge.expanded .verified-date {
+    display: inline;
 }
 
 .tags-row {
@@ -538,9 +582,12 @@ button, select, input {
     grid-column: 1 / 3;
     grid-row: 2 / 3;
     position: relative;
-    width: 100%;
-    height: 44px;
-    overflow: hidden;
+    width: 100% !important;
+    height: 44px !important;
+    max-height: 44px !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    contain: strict;
     border-radius: var(--radius-sm);
 }
 
@@ -684,31 +731,88 @@ button, select, input {
     overflow: hidden;
 }
 
-.speed-chart-wrap {
+.speed-gauge-wrap {
     position: relative;
     width: 100%;
-    height: 220px;
+    max-width: 360px;
+    margin: 0 auto;
 }
 
-.speed-chart-wrap canvas {
-    position: absolute;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
+.speed-gauge-wrap svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* Colored zone bands on the dial face — purely decorative (unlike a car
+   tachometer's redline, a faster internet speed is never "bad"), but this
+   is exactly the classic automotive-gauge look that was asked for. The
+   scale re-scales itself upward during a test (see script.js), so the
+   needle spends most of its time in the green/amber zones and the red
+   zone mostly just marks "near the current top of the dial". */
+#gauge-zone-good { stroke: var(--good-1); }
+#gauge-zone-mid { stroke: #f59e0b; }
+#gauge-zone-hot { stroke: #ef4444; }
+#gauge-zone-good, #gauge-zone-mid, #gauge-zone-hot {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: butt;
+    opacity: 0.9;
+}
+
+.gauge-tick-major, .gauge-tick-minor {
+    stroke: var(--text-secondary);
+    stroke-width: 1.5;
+}
+.gauge-tick-minor { opacity: 0.4; }
+
+.gauge-tick-label {
+    fill: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    font-variant-numeric: tabular-nums;
+}
+
+#gauge-needle {
+    stroke: var(--text-primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transform: rotate(-90deg); /* parked at the minimum (0) until JS sets a real value */
+    transition: transform 0.35s cubic-bezier(0.34, 1.15, 0.4, 1);
+}
+
+#gauge-hub {
+    fill: var(--accent-gradient, var(--accent-1));
+    fill: var(--accent-1);
+    stroke: var(--bg-elevated);
+    stroke-width: 2;
 }
 
 .speed-big-readout {
     position: absolute;
-    top: 20px;
-    inset-inline-start: 24px;
+    top: 66%;
+    left: 50%;
+    /* Deliberately "left" (physical), not inset-inline-start: this element is
+       horizontally CENTERED, and centering needs to pair with the equally
+       physical translateX(-50%) below. Pairing a logical inset property with
+       a physical transform breaks under RTL (this app's default direction) —
+       the 50% offset is measured from the wrong edge while the transform
+       still shifts left, landing the readout off-screen. */
+    transform: translateX(-50%);
     display: flex;
-    align-items: baseline;
-    gap: 6px;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
     pointer-events: none;
+    width: 100%;
 }
 
 .speed-big-readout #speed-value {
-    font-size: 52px;
+    font-size: 40px;
     font-weight: 900;
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
@@ -716,10 +820,11 @@ button, select, input {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    line-height: 1.1;
 }
 
 .speed-big-readout .speed-unit {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
 }
@@ -757,12 +862,24 @@ button, select, input {
 
 .stat-card {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
+    text-align: center;
+    gap: 8px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    padding: 14px;
+    padding: 14px 6px;
+    /* Grid items default to min-width:auto, which lets a card refuse to
+       shrink below its content's natural size — harmless for short "-"
+       placeholders, but a real result like "312.16" is wide enough to blow
+       out a 1fr track on a narrow phone and push the whole row (and the
+       page) into horizontal overflow. Stacking icon/number/label vertically
+       (instead of icon-beside-text) is the other half of the fix: it gives
+       the number the card's FULL width instead of splitting it with a
+       38px icon + gap, which was too little room for 5-6 digit results
+       even after this element could shrink. */
+    min-width: 0;
 }
 
 .stat-icon {
@@ -780,14 +897,15 @@ button, select, input {
     flex-shrink: 0;
 }
 
-.stat-text { min-width: 0; display: flex; flex-direction: column; }
+.stat-text { min-width: 0; max-width: 100%; display: flex; flex-direction: column; align-items: center; }
 .stat-text b {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
 }
 .stat-text small { color: var(--text-secondary); font-size: 11px; }
 

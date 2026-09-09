@@ -1,0 +1,80 @@
+/* Self-hosted fonts — replaces the old fonts.googleapis.com <link> tags.
+   Why: those two Google Fonts requests were a hard dependency for every
+   icon and for the whole UI's typography. If fonts.googleapis.com /
+   fonts.gstatic.com are slow, blocked, or offline (a real scenario for
+   part of this app's own audience), text either falls back to an
+   unstyled system font (acceptable) or, for Material Icons, renders as
+   literal ligature words like "download"/"star_border" clipped into
+   unreadable fragments inside the fixed-size icon buttons (not
+   acceptable — see style.css icon-fallback safety net below).
+   Self-hosting removes the third-party dependency entirely and lets
+   the service worker cache these as part of the offline app shell. */
+
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    font-display: block; /* prefer invisible-then-correct over a garbled fallback word */
+    src: url('./material-icons-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./inter-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('./inter-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('./inter-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('./inter-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('./inter-latin-800-normal.woff2') format('woff2');
+}
+
+/* This ".material-icons" class definition used to be supplied entirely by
+   Google's own stylesheet (fonts.googleapis.com/icon?family=Material+Icons) —
+   the old index.html only ever linked that stylesheet and never defined this
+   class itself. Now that the @font-face above is self-hosted, this class has
+   to be defined here too, or every <span class="material-icons"> in the app
+   has no font-family applied to it at all and silently shows raw fallback
+   text (e.g. "expand_more") even though the font file loads and is valid.
+   This is the standard definition Google ships alongside the font. */
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
